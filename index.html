@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>資格証管理システム</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f2ee;
+  --surface: #ffffff;
+  --surface2: #faf9f6;
+  --border: #e2ddd6;
+  --border2: #ccc8c0;
+  --text: #1a1916;
+  --text2: #6b6860;
+  --text3: #a09d98;
+  --accent: #2a5c3f;
+  --accent-light: #e8f2ec;
+  --accent-mid: #4a8c65;
+  --danger: #c0392b;
+  --danger-light: #fdf0ee;
+  --warn: #b8620a;
+  --warn-light: #fef6ee;
+  --info: #1a4a8a;
+  --info-light: #eef4fd;
+  --mono: 'DM Mono', monospace;
+  --sans: 'Noto Sans JP', sans-serif;
+  --radius: 8px;
+  --radius-lg: 12px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--sans);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* Layout */
+.app { display: flex; min-height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+
+.sidebar-logo {
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo-mark {
+  width: 32px; height: 32px;
+  background: var(--accent);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 16px; font-weight: 700;
+  margin-bottom: 8px;
+}
+.sidebar-logo-name { font-size: 13px; font-weight: 700; color: var(--text); line-height: 1.3; }
+.sidebar-logo-sub { font-size: 11px; color: var(--text3); }
+
+.sidebar-nav { flex: 1; padding: 12px 10px; overflow-y: auto; }
+.nav-section { margin-bottom: 20px; }
+.nav-section-label { font-size: 10px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .08em; padding: 0 8px; margin-bottom: 6px; }
+.nav-item {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px; border-radius: var(--radius);
+  cursor: pointer; font-size: 13px; font-weight: 500; color: var(--text2);
+  transition: all .15s; margin-bottom: 2px; position: relative;
+}
+.nav-item:hover { background: var(--bg); color: var(--text); }
+.nav-item.active { background: var(--accent-light); color: var(--accent); }
+.nav-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto; background: var(--danger); color: #fff;
+  font-size: 10px; font-weight: 700; padding: 1px 6px;
+  border-radius: 10px; min-width: 18px; text-align: center;
+}
+.nav-badge.warn { background: var(--warn); }
+
+.sidebar-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+  font-size: 12px; color: var(--text3);
+}
+.user-info { display: flex; align-items: center; gap: 8px; }
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; flex-shrink: 0;
+}
+.user-name { font-size: 12px; font-weight: 500; color: var(--text); }
+.user-role { font-size: 10px; color: var(--text3); }
+
+/* Main */
+.main { margin-left: 220px; flex: 1; min-height: 100vh; }
+
+.topbar {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 28px;
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+}
+.topbar-title { font-size: 16px; font-weight: 700; }
+.topbar-actions { display: flex; align-items: center; gap: 10px; }
+
+.search-box {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 6px 12px;
+  font-size: 13px; color: var(--text2);
+  cursor: text; min-width: 220px;
+}
+.search-box input {
+  border: none; background: none; outline: none;
+  font-family: var(--sans); font-size: 13px; color: var(--text); width: 100%;
+}
+
+.content { padding: 24px 28px; }
+
+/* Cards & Panels */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-title { font-size: 14px; font-weight: 700; }
+.card-body { padding: 20px; }
+
+/* Buttons */
+.btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: var(--radius);
+  border: 1px solid var(--border2); background: var(--surface);
+  font-family: var(--sans); font-size: 13px; font-weight: 500;
+  color: var(--text); cursor: pointer; transition: all .12s;
+  white-space: nowrap;
+}
+.btn:hover { background: var(--bg); border-color: var(--border2); }
+.btn svg { width: 14px; height: 14px; }
+.btn-primary {
+  background: var(--accent); color: #fff;
+  border-color: var(--accent);
+}
+.btn-primary:hover { background: #1f4a30; }
+.btn-danger { background: var(--danger); color: #fff; border-color: var(--danger); }
+.btn-danger:hover { background: #a32722; }
+.btn-sm { padding: 4px 10px; font-size: 12px; }
+.btn-ghost { border-color: transparent; background: none; }
+.btn-ghost:hover { background: var(--bg); }
+
+/* Badges */
+.badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 4px;
+  font-size: 11px; font-weight: 700;
+}
+.badge-green { background: var(--accent-light); color: var(--accent); }
+.badge-red { background: var(--danger-light); color: var(--danger); }
+.badge-warn { background: var(--warn-light); color: var(--warn); }
+.badge-blue { background: var(--info-light); color: var(--info); }
+.badge-gray { background: var(--bg); color: var(--text2); border: 1px solid var(--border); }
+
+/* Category badges */
+.cat-国家資格 { background: #f0e8ff; color: #5b21b6; }
+.cat-技能講習 { background: #fff3cd; color: #856404; }
+.cat-特別教育 { background: #dbeafe; color: #1e40af; }
+.cat-安全衛生教育 { background: #d1fae5; color: #065f46; }
+
+/* Grid */
+.grid { display: grid; gap: 16px; }
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-2 { grid-template-columns: 1fr 1fr; }
+
+/* Metric cards */
+.metric-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+.metric-label { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+.metric-value { font-size: 28px; font-weight: 700; line-height: 1; }
+.metric-sub { font-size: 12px; color: var(--text3); margin-top: 4px; }
+.metric-card.danger { border-color: #f5c6c4; background: #fff8f8; }
+.metric-card.danger .metric-value { color: var(--danger); }
+.metric-card.warn { border-color: #f5ddb0; background: #fffbf4; }
+.metric-card.warn .metric-value { color: var(--warn); }
+.metric-card.accent { border-color: #b8d9c5; background: #f4fbf7; }
+.metric-card.accent .metric-value { color: var(--accent); }
+
+/* Table */
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  padding: 10px 14px; text-align: left;
+  font-size: 11px; font-weight: 700; color: var(--text2);
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  text-transform: uppercase; letter-spacing: .05em;
+}
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:hover { background: var(--surface2); cursor: pointer; }
+tbody tr:last-child { border-bottom: none; }
+tbody td { padding: 12px 14px; font-size: 13px; vertical-align: middle; }
+
+/* Alert bar */
+.alert-bar {
+  padding: 10px 16px; border-radius: var(--radius);
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px; margin-bottom: 8px;
+}
+.alert-bar.danger { background: var(--danger-light); border: 1px solid #f5c6c4; color: var(--danger); }
+.alert-bar.warn { background: var(--warn-light); border: 1px solid #f5ddb0; color: var(--warn); }
+.alert-bar svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* Tabs */
+.tabs { display: flex; gap: 0; border-bottom: 1px solid var(--border); margin-bottom: 20px; }
+.tab-item {
+  padding: 10px 18px; font-size: 13px; font-weight: 500;
+  color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent;
+  transition: all .15s; margin-bottom: -1px;
+}
+.tab-item:hover { color: var(--text); }
+.tab-item.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Modal overlay */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.4);
+  z-index: 200;
+  align-items: center; justify-content: center;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  width: 560px; max-width: 95vw;
+  max-height: 90vh; overflow-y: auto;
+  border: 1px solid var(--border);
+}
+.modal-header {
+  padding: 18px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.modal-title { font-size: 15px; font-weight: 700; }
+.modal-body { padding: 24px; }
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex; gap: 10px; justify-content: flex-end;
+}
+
+/* Form */
+.form-group { margin-bottom: 16px; }
+.form-label { font-size: 12px; font-weight: 700; color: var(--text2); margin-bottom: 6px; display: block; }
+.form-control {
+  width: 100%; padding: 8px 12px;
+  border: 1px solid var(--border2); border-radius: var(--radius);
+  font-family: var(--sans); font-size: 13px; color: var(--text);
+  background: var(--surface); outline: none;
+  transition: border-color .15s;
+}
+.form-control:focus { border-color: var(--accent); }
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+select.form-control { cursor: pointer; }
+
+/* Image upload area */
+.upload-zone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--radius-lg);
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all .15s;
+  background: var(--surface2);
+}
+.upload-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+.upload-zone.drag-over { border-color: var(--accent); background: var(--accent-light); border-style: solid; transform: scale(1.01); transition: all .1s; }
+.upload-icon { font-size: 32px; margin-bottom: 8px; }
+.upload-text { font-size: 13px; color: var(--text2); }
+.upload-hint { font-size: 11px; color: var(--text3); margin-top: 4px; }
+
+/* Image viewer */
+.img-viewer {
+  background: #1a1916;
+  border-radius: var(--radius-lg);
+  aspect-ratio: 4/3;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+}
+.img-viewer img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.img-placeholder {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  color: #6b6860;
+}
+.img-placeholder svg { width: 48px; height: 48px; opacity: .4; }
+
+/* Image thumbs */
+.thumb-row { display: flex; gap: 8px; margin-top: 10px; flex-wrap: wrap; }
+.thumb {
+  width: 80px; height: 60px;
+  border-radius: 6px; border: 2px solid transparent;
+  background: var(--bg); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden; transition: border-color .12s;
+}
+.thumb.active { border-color: var(--accent); }
+.thumb svg { width: 24px; height: 24px; color: var(--text3); }
+
+/* Status dot */
+.status-dot {
+  display: inline-block; width: 7px; height: 7px;
+  border-radius: 50%; margin-right: 5px;
+}
+.dot-green { background: var(--accent-mid); }
+.dot-red { background: var(--danger); }
+.dot-warn { background: var(--warn); }
+.dot-gray { background: var(--text3); }
+
+/* Expiry bar */
+.expiry-bar {
+  height: 4px; border-radius: 2px;
+  background: var(--border); overflow: hidden;
+  margin-top: 4px;
+}
+.expiry-fill { height: 100%; border-radius: 2px; transition: width .3s; }
+
+/* Section */
+.section { margin-bottom: 24px; }
+.section-title {
+  font-size: 12px; font-weight: 700; color: var(--text2);
+  text-transform: uppercase; letter-spacing: .07em;
+  margin-bottom: 12px;
+}
+
+/* Divider */
+.divider { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+
+/* Empty state */
+.empty-state {
+  text-align: center; padding: 48px 20px; color: var(--text3);
+}
+.empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: .4; }
+.empty-state p { font-size: 14px; }
+
+/* Toast */
+.toast-container { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 8px; }
+.toast {
+  background: var(--text); color: #fff;
+  padding: 10px 16px; border-radius: var(--radius);
+  font-size: 13px; font-weight: 500;
+  animation: slideIn .2s ease; min-width: 200px;
+}
+.toast.success { background: var(--accent); }
+.toast.error { background: var(--danger); }
+@keyframes slideIn { from { transform: translateX(20px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+
+/* Detail view */
+.detail-header {
+  display: flex; align-items: flex-start; gap: 20px;
+  padding: 24px; border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.detail-avatar {
+  width: 52px; height: 52px; border-radius: 50%;
+  background: var(--accent); color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; font-weight: 700; flex-shrink: 0;
+}
+.detail-info { flex: 1; }
+.detail-name { font-size: 20px; font-weight: 700; margin-bottom: 4px; }
+.detail-meta { font-size: 13px; color: var(--text2); display: flex; gap: 16px; flex-wrap: wrap; }
+.detail-meta span { display: flex; align-items: center; gap: 5px; }
+.detail-meta svg { width: 13px; height: 13px; }
+
+/* Responsive helper */
+.hidden { display: none !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+  <div class="sidebar-logo">
+    <div class="sidebar-logo-mark">資</div>
+    <div class="sidebar-logo-name">資格証管理システム</div>
+    <div class="sidebar-logo-sub">建設業・電気工事業向け</div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-label">メイン</div>
+      <div class="nav-item active" onclick="showPage('dashboard')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        ダッシュボード
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">管理</div>
+      <div class="nav-item" onclick="showPage('employees')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        従業員管理
+      </div>
+      <div class="nav-item" onclick="showPage('qualifications')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+        資格一覧
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">アラート</div>
+      <div class="nav-item" id="nav-expired" onclick="showPage('expired')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        期限切れ
+        <span class="nav-badge" id="badge-expired">3</span>
+      </div>
+      <div class="nav-item" id="nav-expiring" onclick="showPage('expiring')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        更新予定
+        <span class="nav-badge warn" id="badge-expiring">8</span>
+      </div>
+    </div>
+  </nav>
+  <div class="sidebar-footer" onclick="showAdminModal()" style="cursor:pointer" title="管理者情報を編集">
+    <div class="user-info">
+      <div class="user-avatar" id="admin-avatar">管</div>
+      <div style="flex:1;min-width:0">
+        <div class="user-name" id="admin-name">管理者名未設定</div>
+        <div class="user-role" id="admin-role">管理者</div>
+      </div>
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--text3)"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    </div>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="page-title">ダッシュボード</div>
+    <div class="topbar-actions">
+      <div class="search-box">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="global-search" placeholder="従業員・資格を検索..." oninput="handleSearch(this.value)">
+      </div>
+      <button class="btn" onclick="showAddEmpModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+        従業員を登録
+      </button>
+      <button class="btn btn-primary" onclick="showAddModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        資格を追加
+      </button>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    <!-- injected by JS -->
+  </div>
+</div>
+
+<!-- Add / Edit Modal -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">資格を追加</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('add-modal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div id="f-employee-row" class="form-row">
+        <div class="form-group">
+          <label class="form-label">従業員</label>
+          <select class="form-control" id="f-employee">
+            <option value="">選択してください</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">資格名</label>
+          <select class="form-control" id="f-qualification">
+            <option value="">選択してください</option>
+          </select>
+        </div>
+      </div>
+      <div id="f-employee-fixed" style="display:none;margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text2);margin-bottom:6px;">従業員</div>
+        <div id="f-employee-name" style="padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text2);"></div>
+      </div>
+      <div id="f-qual-solo" style="display:none;margin-bottom:14px;">
+        <div class="form-group">
+          <label class="form-label">資格名</label>
+          <select class="form-control" id="f-qualification-solo">
+            <option value="">選択してください</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">取得日</label>
+          <input type="date" class="form-control" id="f-acquired">
+        </div>
+        <div class="form-group">
+          <label class="form-label">有効期限</label>
+          <input type="date" class="form-control" id="f-expiry">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">資格証画像（JPEG・PNG・PDF）</label>
+        <div class="upload-zone"
+          onclick="document.getElementById('file-input').click()"
+          ondragover="event.preventDefault();this.classList.add('drag-over')"
+          ondragleave="this.classList.remove('drag-over')"
+          ondrop="event.preventDefault();this.classList.remove('drag-over');handleFileUpload({files:event.dataTransfer.files})">
+          <div class="upload-icon">📎</div>
+          <div class="upload-text">クリックして画像を選択、またはドラッグ＆ドロップ</div>
+          <div class="upload-hint">JPEG・PNG・PDF / 最大10MB / 最大5枚</div>
+        </div>
+        <input type="file" id="file-input" multiple accept="image/*,.pdf" style="display:none" onchange="handleFileUpload(this)">
+        <div class="thumb-row" id="upload-thumbs"></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">備考</label>
+        <textarea class="form-control" id="f-notes" rows="2" placeholder="特記事項があれば入力"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('add-modal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveRecord()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        保存する
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Image Viewer Modal -->
+<div class="modal-overlay" id="img-modal">
+  <div class="modal" style="width:640px;">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="img-modal-title">資格証画像</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:2px;" id="img-modal-sub"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('img-modal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body" style="padding:20px;">
+      <div class="img-viewer" id="img-viewer">
+        <div class="img-placeholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <div>画像が表示されます</div>
+        </div>
+      </div>
+      <div class="thumb-row" id="viewer-thumbs" style="margin-top:12px;justify-content:center;"></div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button class="btn btn-primary" onclick="downloadImg()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          ダウンロード
+        </button>
+        <button class="btn" onclick="openNewTab()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          別タブで開く
+        </button>
+      </div>
+      <div style="margin-top:10px;padding:8px 12px;background:var(--info-light);border-radius:var(--radius);font-size:12px;color:var(--info);">
+        🔒 表示URLは15分で失効します（実運用時はサーバーが署名付きURLを発行）
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Employee Detail Modal -->
+<div class="modal-overlay" id="emp-modal">
+  <div class="modal" style="width:680px;">
+    <div class="modal-header">
+      <div class="modal-title">従業員詳細</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('emp-modal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="emp-modal-body"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('emp-modal')">閉じる</button>
+      <button class="btn" onclick="showAddEmpModal(currentEmpId)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        従業員情報を編集
+      </button>
+      <button class="btn btn-primary" onclick="closeModal('emp-modal');showAddModal(currentEmpId)">資格を追加</button>
+    </div>
+  </div>
+</div>
+
+<!-- 従業員登録モーダル -->
+<div class="modal-overlay" id="emp-add-modal">
+  <div class="modal" style="width:520px;">
+    <div class="modal-header">
+      <div class="modal-title" id="emp-modal-title">従業員を登録</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('emp-add-modal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">氏名 <span style="color:var(--danger)">*</span></label>
+          <input type="text" class="form-control" id="ef-name" placeholder="例：田中 一郎">
+        </div>
+        <div class="form-group">
+          <label class="form-label">所属部署 <span style="color:var(--danger)">*</span></label>
+          <input type="text" class="form-control" id="ef-dept" placeholder="例：電気工事部" list="dept-list">
+          <datalist id="dept-list">
+            <option value="電気工事部">
+            <option value="施工管理部">
+            <option value="管理部">
+          </datalist>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">入社日 <span style="color:var(--danger)">*</span></label>
+          <input type="date" class="form-control" id="ef-hire">
+        </div>
+        <div class="form-group">
+          <label class="form-label">在籍状況</label>
+          <select class="form-control" id="ef-status">
+            <option value="在籍">在籍</option>
+            <option value="休職">休職</option>
+            <option value="退職">退職</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">メールアドレス（任意）</label>
+        <input type="email" class="form-control" id="ef-email" placeholder="例：tanaka@example.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">備考（任意）</label>
+        <textarea class="form-control" id="ef-notes" rows="2" placeholder="特記事項があれば入力"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('emp-add-modal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveEmployee()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        登録する
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- 管理者情報編集モーダル -->
+<div class="modal-overlay" id="admin-modal">
+  <div class="modal" style="width:440px;">
+    <div class="modal-header">
+      <div class="modal-title">管理者情報の編集</div>
+      <button class="btn btn-ghost btn-sm" onclick="closeModal('admin-modal')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:14px;background:var(--bg);border-radius:var(--radius-lg);">
+        <div id="admin-preview-avatar" style="width:48px;height:48px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;">管</div>
+        <div>
+          <div id="admin-preview-name" style="font-weight:600;font-size:15px;">管理者名未設定</div>
+          <div id="admin-preview-role" style="font-size:12px;color:var(--text2);">管理者</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">氏名 <span style="color:var(--danger)">*</span></label>
+        <input type="text" class="form-control" id="af-name" placeholder="例：山田 太郎" oninput="updateAdminPreview()">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">会社名</label>
+          <input type="text" class="form-control" id="af-company" placeholder="例：〇〇電気工事株式会社" oninput="updateAdminPreview()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">権限</label>
+          <select class="form-control" id="af-role" onchange="updateAdminPreview()">
+            <option value="管理者">管理者</option>
+            <option value="閲覧のみ">閲覧のみ</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">メールアドレス</label>
+        <input type="email" class="form-control" id="af-email" placeholder="例：admin@example.com">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('admin-modal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="saveAdmin()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        保存する
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toasts"></div>
+
+<!-- ローディングオーバーレイ -->
+<div id="loading-overlay" style="position:fixed;inset:0;background:rgba(244,242,238,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:14px;font-size:14px;color:#6b6860;">
+  <div style="width:36px;height:36px;border:3px solid #e2ddd6;border-top-color:#2a5c3f;border-radius:50%;animation:spin .8s linear infinite;"></div>
+  <div id="loading-msg">データを読み込み中...</div>
+</div>
+<style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+// ============================================================
+// SUPABASE 設定
+// ============================================================
+const SUPABASE_URL  = 'https://zsayrjarztkqzawfuluq.supabase.co';
+const SUPABASE_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpzYXlyamFyenRrcXphd2Z1bHVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3MjU5NTksImV4cCI6MjA5NDMwMTk1OX0.N8ka3PNADvvFuhLwupxDP2Yg7i7ExqYB8o28kpNdzQY';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ============================================================
+// DB CRUD — Supabase読み書き
+// ============================================================
+async function dbLoadAll() {
+  setLoading(true, 'データを読み込み中...');
+  const [empRes, recRes] = await Promise.all([
+    sb.from('employees').select('*').order('id'),
+    sb.from('records').select('*').order('id'),
+  ]);
+  if (empRes.error) { showToast('従業員の読み込み失敗: ' + empRes.error.message, 'error'); }
+  else { employees.length = 0; empRes.data.forEach(r => employees.push(dbToEmp(r))); }
+  if (recRes.error) { showToast('資格の読み込み失敗: ' + recRes.error.message, 'error'); }
+  else { records.length = 0; recRes.data.forEach(r => records.push(dbToRec(r))); }
+  setLoading(false);
+  updateBadges();
+  renderPage(currentPage);
+}
+
+// DB行 → アプリ形式
+function dbToEmp(r) {
+  const parts = (r.name || '').replace(/\s+/g,' ').trim().split(' ');
+  const initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : (r.name||'?').slice(0,2);
+  return { id:r.id, name:r.name, dept:r.dept, hire:r.hire, status:r.status||'在籍', initials:r.initials||initials, email:r.email||'', notes:r.notes||'' };
+}
+function dbToRec(r) {
+  return { id:r.id, empId:r.emp_id, qualId:r.qual_id, acquired:r.acquired, expiry:r.expiry||null, images:r.images||[], notes:r.notes||'' };
+}
+
+// アプリ形式 → DB行
+function empToDb(e) {
+  return { name:e.name, dept:e.dept, hire:e.hire||null, status:e.status, initials:e.initials, email:e.email||null, notes:e.notes||null };
+}
+function recToDb(r) {
+  return { emp_id:r.empId, qual_id:r.qualId, acquired:r.acquired||null, expiry:r.expiry||null, images:r.images||[], notes:r.notes||null };
+}
+
+async function dbInsertEmployee(e) {
+  const { data, error } = await sb.from('employees').insert(empToDb(e)).select().single();
+  if (error) { showToast('登録失敗: ' + error.message, 'error'); return null; }
+  return data.id;
+}
+async function dbUpdateEmployee(e) {
+  const { error } = await sb.from('employees').update(empToDb(e)).eq('id', e.id);
+  if (error) showToast('更新失敗: ' + error.message, 'error');
+  return !error;
+}
+async function dbInsertRecord(r) {
+  const { data, error } = await sb.from('records').insert(recToDb(r)).select().single();
+  if (error) { showToast('資格登録失敗: ' + error.message, 'error'); return null; }
+  return data.id;
+}
+async function dbUpdateRecord(r) {
+  const { error } = await sb.from('records').update(recToDb(r)).eq('id', r.id);
+  if (error) showToast('更新失敗: ' + error.message, 'error');
+  return !error;
+}
+
+function setLoading(on, msg='') {
+  const el = document.getElementById('loading-overlay');
+  if (!el) return;
+  el.style.display = on ? 'flex' : 'none';
+  if (msg) document.getElementById('loading-msg').textContent = msg;
+}
+
+// ============================================================
+// DATA — 電気工事業メイン版（27名）
+// ============================================================
+const today = new Date('2025-03-15');
+
+const employees = [
+  // ここに従業員を追加してください
+  // 例: { id:1, name:'田中 一郎', dept:'電気工事部', hire:'2024-04-01', status:'在籍', initials:'田一' },
+  /*
+  { id: 2, name:'伊藤 次郎',   dept:'電気工事部', hire:'2009-07-01', status:'在籍', initials:'伊次' },
+  { id: 3, name:'鈴木 三郎',   dept:'電気工事部', hire:'2012-04-01', status:'在籍', initials:'鈴三' },
+  { id: 4, name:'山本 浩二',   dept:'電気工事部', hire:'2014-10-01', status:'在籍', initials:'山浩' },
+  { id: 5, name:'加藤 健太',   dept:'電気工事部', hire:'2016-04-01', status:'在籍', initials:'加健' },
+  { id: 6, name:'中島 翔',     dept:'電気工事部', hire:'2017-07-15', status:'在籍', initials:'中翔' },
+  { id: 7, name:'西村 直樹',   dept:'電気工事部', hire:'2018-04-01', status:'在籍', initials:'西直' },
+  { id: 8, name:'橋本 隆',     dept:'電気工事部', hire:'2019-10-01', status:'在籍', initials:'橋隆' },
+  { id: 9, name:'松田 康介',   dept:'電気工事部', hire:'2020-04-01', status:'在籍', initials:'松康' },
+  { id:10, name:'清水 拓也',   dept:'電気工事部', hire:'2021-04-01', status:'在籍', initials:'清拓' },
+  { id:11, name:'岡田 雄一',   dept:'電気工事部', hire:'2022-04-01', status:'在籍', initials:'岡雄' },
+  { id:12, name:'石川 昴',     dept:'電気工事部', hire:'2022-10-01', status:'在籍', initials:'石昴' },
+  { id:13, name:'藤井 大輝',   dept:'電気工事部', hire:'2023-04-01', status:'在籍', initials:'藤大' },
+  { id:14, name:'木村 聡',     dept:'電気工事部', hire:'2023-10-01', status:'在籍', initials:'木聡' },
+  { id:15, name:'森田 航',     dept:'電気工事部', hire:'2024-04-01', status:'在籍', initials:'森航' },
+  { id:16, name:'中山 颯太',   dept:'電気工事部', hire:'2024-10-01', status:'在籍', initials:'中颯' },
+  // 施工管理部（5名）
+  { id:17, name:'佐藤 二郎',   dept:'施工管理部', hire:'2008-04-01', status:'在籍', initials:'佐二' },
+  { id:18, name:'高橋 誠',     dept:'施工管理部', hire:'2011-06-01', status:'在籍', initials:'高誠' },
+  { id:19, name:'渡辺 太郎',   dept:'施工管理部', hire:'2015-04-01', status:'在籍', initials:'渡太' },
+  { id:20, name:'中村 健一',   dept:'施工管理部', hire:'2018-10-01', status:'在籍', initials:'中健' },
+  { id:21, name:'小林 裕太',   dept:'施工管理部', hire:'2021-04-01', status:'在籍', initials:'小裕' },
+  // 管理部（4名）
+  { id:22, name:'高橋 花子',   dept:'管理部', hire:'2010-04-01', status:'在籍', initials:'高花' },
+  { id:23, name:'小林 由美',   dept:'管理部', hire:'2015-01-10', status:'在籍', initials:'小由' },
+  { id:24, name:'森 直子',     dept:'管理部', hire:'2019-04-01', status:'在籍', initials:'森直' },
+  { id:25, name:'吉田 武',     dept:'管理部', hire:'2022-07-01', status:'在籍', initials:'吉武' },
+  */
+];
+
+const qualMasters = [
+  // 国家資格
+  { id: 1, name:'第一種電気工事士',             category:'国家資格',     renewal:true,  years:5 },
+  { id: 2, name:'第二種電気工事士',             category:'国家資格',     renewal:false, years:0 },
+  { id: 3, name:'一級電気工事施工管理技士',     category:'国家資格',     renewal:false, years:0 },
+  { id: 4, name:'二級電気工事施工管理技士',     category:'国家資格',     renewal:false, years:0 },
+  { id: 5, name:'電気主任技術者（第三種）',     category:'国家資格',     renewal:false, years:0 },
+  { id: 6, name:'消防設備士（甲種4類）',        category:'国家資格',     renewal:true,  years:5 },
+  // 技能講習
+  { id: 7, name:'高所作業車運転（10m以上）',    category:'技能講習',     renewal:false, years:0 },
+  { id: 8, name:'小型移動式クレーン運転',       category:'技能講習',     renewal:false, years:0 },
+  { id: 9, name:'玉掛け技能講習',               category:'技能講習',     renewal:false, years:0 },
+  { id:10, name:'フォークリフト運転',           category:'技能講習',     renewal:false, years:0 },
+  { id:11, name:'足場の組立等作業主任者',       category:'技能講習',     renewal:true,  years:5 },
+  // 特別教育
+  { id:12, name:'低圧電気取扱業務',             category:'特別教育',     renewal:false, years:0 },
+  { id:13, name:'高圧・特別高圧電気取扱業務',   category:'特別教育',     renewal:false, years:0 },
+  { id:14, name:'フルハーネス型墜落制止用器具', category:'特別教育',     renewal:false, years:0 },
+  { id:15, name:'アーク溶接業務',               category:'特別教育',     renewal:false, years:0 },
+  { id:16, name:'研削砥石取替業務',             category:'特別教育',     renewal:false, years:0 },
+  // 安全衛生教育
+  { id:17, name:'職長・安全衛生責任者教育',     category:'安全衛生教育', renewal:true,  years:5 },
+  { id:18, name:'雇入れ時安全衛生教育',         category:'安全衛生教育', renewal:false, years:0 },
+  { id:19, name:'送り出し教育',                 category:'安全衛生教育', renewal:false, years:0 },
+];
+
+// ── 保有資格レコード ──────────────────────────────────────────
+let records = [];
+
+let nextId = 1;
+
+// アップロード済み画像の一時保管（セッション内のみ有効）
+function makeDummySVG() { return ''; }
+const dummyImages = {};
+
+
+
+
+// ============================================================
+// HELPERS
+// ============================================================
+function getEmployee(id) { return employees.find(e => e.id === id); }
+function getQual(id) { return qualMasters.find(q => q.id === id); }
+function daysDiff(expiry) {
+  if (!expiry) return null;
+  const exp = new Date(expiry);
+  return Math.floor((exp - today) / 86400000);
+}
+function getStatus(rec) {
+  const d = daysDiff(rec.expiry);
+  if (!rec.expiry) return 'noexpiry';
+  if (d < 0) return 'expired';
+  if (d <= 90) return 'expiring';
+  return 'valid';
+}
+function statusBadge(rec) {
+  const s = getStatus(rec);
+  const d = daysDiff(rec.expiry);
+  if (s === 'noexpiry') return '<span class="badge badge-gray">期限なし</span>';
+  if (s === 'expired') return '<span class="badge badge-red">期限切れ</span>';
+  if (s === 'expiring') return `<span class="badge badge-warn">残${d}日</span>`;
+  return '<span class="badge badge-green">有効</span>';
+}
+function catBadge(cat) {
+  return `<span class="badge cat-${cat}">${cat}</span>`;
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return d.replace(/-/g, '/');
+}
+function expiryFill(rec) {
+  const d = daysDiff(rec.expiry);
+  if (!rec.expiry || d < 0) return 0;
+  const pct = Math.min(100, Math.round(d / 365 * 100));
+  const color = d <= 90 ? 'var(--warn)' : 'var(--accent-mid)';
+  return `<div class="expiry-bar"><div class="expiry-fill" style="width:${pct}%;background:${color}"></div></div>`;
+}
+
+// Derived counts
+function expiredRecords() { return records.filter(r => getStatus(r) === 'expired'); }
+function expiringRecords() { return records.filter(r => getStatus(r) === 'expiring'); }
+
+// ============================================================
+// CURRENT PAGE STATE
+// ============================================================
+let currentPage = 'dashboard';
+let currentImgRecord = null;
+let currentEmpId = null;
+let currentImgIndex = 0;
+
+function showPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const nav = document.querySelector(`.nav-item[onclick*="${page}"]`);
+  if (nav) nav.classList.add('active');
+  const titles = { dashboard:'ダッシュボード', employees:'従業員管理', qualifications:'資格一覧', expired:'期限切れ一覧', expiring:'更新予定一覧（3か月以内）' };
+  document.getElementById('page-title').textContent = titles[page] || page;
+  renderPage(page);
+}
+
+function renderPage(page) {
+  const content = document.getElementById('content');
+  if (page === 'dashboard')      content.innerHTML = renderDashboard();
+  else if (page === 'employees') content.innerHTML = renderEmployees();
+  else if (page === 'qualifications') content.innerHTML = renderQualifications();
+  else if (page === 'expired')   content.innerHTML = renderExpiredPage();
+  else if (page === 'expiring')  content.innerHTML = renderExpiringPage();
+  else if (page === 'search')    content.innerHTML = renderSearch();
+}
+
+// ============================================================
+// DASHBOARD
+// ============================================================
+function renderDashboard() {
+  const exp = expiredRecords();
+  const expn = expiringRecords();
+  const totalQuals = records.length;
+  const activeEmps = employees.filter(e => e.status === '在籍').length;
+
+  let alerts = '';
+  if (exp.length > 0) {
+    const names = exp.slice(0,3).map(r => getEmployee(r.empId)?.name + '・' + getQual(r.qualId)?.name).join('、');
+    alerts += `<div class="alert-bar danger"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><strong>期限切れ ${exp.length}件：</strong> ${names}${exp.length > 3 ? '…他' : ''}</div>`;
+  }
+  if (expn.length > 0) {
+    alerts += `<div class="alert-bar warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><strong>3か月以内に期限 ${expn.length}件あります。</strong> 更新手続きを確認してください。</div>`;
+  }
+
+  const recentAlerts = [...exp, ...expn].slice(0,8);
+  let alertRows = recentAlerts.map(r => {
+    const e = getEmployee(r.empId), q = getQual(r.qualId);
+    return `<tr onclick="showEmpDetail(${r.empId})">
+      <td>${statusBadge(r)}</td>
+      <td><strong>${e?.name}</strong></td>
+      <td>${e?.dept}</td>
+      <td>${catBadge(q?.category)}</td>
+      <td>${q?.name}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:${getStatus(r)==='expired'?'var(--danger)':'var(--warn)'}">${fmtDate(r.expiry)}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    ${alerts ? `<div class="section">${alerts}</div>` : ''}
+    <div class="grid grid-4 section">
+      <div class="metric-card"><div class="metric-label">在籍従業員数</div><div class="metric-value">${activeEmps}</div><div class="metric-sub">名</div></div>
+      <div class="metric-card"><div class="metric-label">管理資格数（合計）</div><div class="metric-value">${totalQuals}</div><div class="metric-sub">件</div></div>
+      <div class="metric-card danger"><div class="metric-label">期限切れ</div><div class="metric-value">${exp.length}</div><div class="metric-sub">件 — 要対応</div></div>
+      <div class="metric-card warn"><div class="metric-label">3か月以内に期限</div><div class="metric-value">${expn.length}</div><div class="metric-sub">件 — 要確認</div></div>
+    </div>
+    <div class="card section">
+      <div class="card-header">
+        <div class="card-title">期限切れ・更新対象一覧</div>
+        <button class="btn btn-sm" onclick="exportCSV()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          CSV出力
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>状態</th><th>従業員</th><th>所属</th><th>区分</th><th>資格名</th><th>期限日</th></tr></thead>
+          <tbody>${alertRows || '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:24px">期限切れ・更新対象なし</td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// ============================================================
+// EMPLOYEES
+// ============================================================
+function renderEmployees(filter='') {
+  const list = employees.filter(e => !filter || e.name.includes(filter) || e.dept.includes(filter));
+  const rows = list.map(e => {
+    const myRecs = records.filter(r => r.empId === e.id);
+    const expired = myRecs.filter(r => getStatus(r) === 'expired').length;
+    const expiring = myRecs.filter(r => getStatus(r) === 'expiring').length;
+    let statusHtml = `<span class="badge badge-green">在籍</span>`;
+    if (expired > 0) statusHtml += ` <span class="badge badge-red">期切${expired}</span>`;
+    if (expiring > 0) statusHtml += ` <span class="badge badge-warn">要更新${expiring}</span>`;
+    return `<tr onclick="showEmpDetail(${e.id})">
+      <td><div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0">${e.initials}</div>
+        <div><div style="font-weight:600">${e.name}</div><div style="font-size:11px;color:var(--text3)">${e.dept}</div></div>
+      </div></td>
+      <td>${fmtDate(e.hire)}</td>
+      <td>${myRecs.length}件</td>
+      <td>${statusHtml}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="position:relative">
+        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" class="form-control" style="padding-left:32px;width:240px" placeholder="氏名・所属で絞り込み" oninput="document.getElementById('content').innerHTML = renderEmployees(this.value)">
+      </div>
+      <div style="font-size:13px;color:var(--text2)">${list.length}名</div>
+    </div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>従業員</th><th>入社日</th><th>保有資格数</th><th>ステータス</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function showEmpDetail(empId) {
+  currentEmpId = empId;
+  const e = getEmployee(empId);
+  if (!e) return;
+  const myRecs = records.filter(r => r.empId === empId);
+
+  const qualRows = myRecs.map(r => {
+    const q = getQual(r.qualId);
+    const hasImg = r.images && r.images.length > 0;
+    return `<tr onclick="event.stopPropagation()">
+      <td>${catBadge(q?.category)}</td>
+      <td style="font-weight:500">${q?.name}</td>
+      <td>${fmtDate(r.acquired)}</td>
+      <td>
+        <div>${fmtDate(r.expiry)}</div>
+        ${expiryFill(r)}
+      </td>
+      <td>${statusBadge(r)}</td>
+      <td>
+        ${hasImg
+          ? `<button class="btn btn-sm" onclick="openImgViewer(${r.id})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 表示 (${r.images.length})</button>`
+          : `<span style="font-size:12px;color:var(--text3)">未登録</span>`}
+      </td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">資格なし</td></tr>';
+
+  document.getElementById('emp-modal-body').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-avatar">${e.initials}</div>
+      <div class="detail-info">
+        <div class="detail-name">${e.name}</div>
+        <div class="detail-meta">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>${e.dept}</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>入社：${fmtDate(e.hire)}</span>
+          <span><span class="badge badge-green">${e.status}</span></span>
+        </div>
+      </div>
+    </div>
+    <div style="padding:20px">
+      <div class="section-title">保有資格一覧（${myRecs.length}件）</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>区分</th><th>資格名</th><th>取得日</th><th>有効期限</th><th>状態</th><th>資格証</th></tr></thead>
+            <tbody>${qualRows}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  `;
+  document.getElementById('emp-modal').classList.add('open');
+}
+
+// ============================================================
+// QUALIFICATIONS LIST — 資格起点の2段階表示
+// ============================================================
+
+// カテゴリ表示設定
+const catConfig = {
+  '国家資格':    { icon: '🏛️', accent: '#5b21b6', bg: '#f0e8ff', border: '#c4b5fd' },
+  '技能講習':    { icon: '🔧', accent: '#856404', bg: '#fff3cd', border: '#fcd34d' },
+  '特別教育':    { icon: '📘', accent: '#1e40af', bg: '#dbeafe', border: '#93c5fd' },
+  '安全衛生教育':{ icon: '🦺', accent: '#065f46', bg: '#d1fae5', border: '#6ee7b7' },
+};
+
+// 資格マスタ一覧画面（カテゴリ別カード群）
+function renderQualifications(filter='') {
+  const cats = ['国家資格', '技能講習', '特別教育', '安全衛生教育'];
+
+  // 検索フィルター適用後の資格マスタ
+  const filteredMasters = qualMasters.filter(q =>
+    !filter || q.name.includes(filter) || q.category.includes(filter)
+  );
+
+  const sections = cats.map(cat => {
+    const mastersInCat = filteredMasters.filter(q => q.category === cat);
+    if (mastersInCat.length === 0) return '';
+    const cfg = catConfig[cat];
+
+    const cards = mastersInCat.map(q => {
+      const holders = records.filter(r => r.qualId === q.id);
+      const expiredCount  = holders.filter(r => getStatus(r) === 'expired').length;
+      const expiringCount = holders.filter(r => getStatus(r) === 'expiring').length;
+      const validCount    = holders.filter(r => getStatus(r) === 'valid').length;
+      const noexpCount    = holders.filter(r => getStatus(r) === 'noexpiry').length;
+
+      let alertHtml = '';
+      if (expiredCount > 0)  alertHtml += `<span class="badge badge-red" style="font-size:10px">${expiredCount}名 期切れ</span> `;
+      if (expiringCount > 0) alertHtml += `<span class="badge badge-warn" style="font-size:10px">${expiringCount}名 要更新</span>`;
+
+      return `
+        <div onclick="showQualDetail(${q.id})" style="
+          background:var(--surface); border:1px solid var(--border);
+          border-radius:var(--radius-lg); padding:16px 18px;
+          cursor:pointer; transition:all .15s;
+          border-left:4px solid ${cfg.border};
+        "
+        onmouseover="this.style.borderColor='${cfg.accent}';this.style.background='${cfg.bg}'"
+        onmouseout="this.style.borderColor='var(--border)';this.style.borderLeftColor='${cfg.border}';this.style.background='var(--surface)'">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:10px;">
+            <div style="font-size:14px;font-weight:700;line-height:1.4;flex:1;">${q.name}</div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="${cfg.accent}" stroke-width="2" style="flex-shrink:0;margin-top:3px"><polyline points="9 18 15 12 9 6"/></svg>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+            ${alertHtml}
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div style="font-size:12px;color:var(--text2);">
+              所持者 <strong style="color:var(--text);font-size:14px;">${holders.length}</strong> 名
+              ${validCount > 0 ? `<span style="color:var(--accent-mid);margin-left:6px">✓ 有効${validCount}</span>` : ''}
+              ${noexpCount > 0 ? `<span style="color:var(--text3);margin-left:6px">期限なし${noexpCount}</span>` : ''}
+            </div>
+            <div style="font-size:11px;color:var(--text3);">${q.renewal ? '更新あり・' + q.years + '年' : '更新不要'}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div style="margin-bottom:28px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="
+            padding:4px 12px;border-radius:20px;
+            background:${cfg.bg};color:${cfg.accent};
+            font-size:13px;font-weight:700;border:1px solid ${cfg.border};
+          ">${cfg.icon} ${cat}</div>
+          <div style="font-size:12px;color:var(--text3)">${mastersInCat.length}種類</div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:10px;">
+          ${cards}
+        </div>
+      </div>`;
+  }).join('');
+
+  const total = filteredMasters.length;
+
+  return `
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+      <div style="position:relative;flex:1;min-width:200px;max-width:340px;">
+        <svg style="position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--text3)" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input id="qsearch" type="text" class="form-control" style="padding-left:32px;" placeholder="資格名で絞り込み"
+          value="${filter}"
+          oninput="document.getElementById('content').innerHTML=renderQualifications(this.value)">
+      </div>
+      <div style="font-size:13px;color:var(--text2);">${total}種類の資格</div>
+    </div>
+    ${sections || '<div class="empty-state"><p>該当する資格がありません</p></div>'}
+  `;
+}
+
+// 資格詳細画面（所持者一覧）
+function showQualDetail(qualId) {
+  const q = getQual(qualId);
+  if (!q) return;
+  const cfg = catConfig[q.category] || {};
+  const holders = records.filter(r => r.qualId === qualId);
+
+  document.getElementById('page-title').textContent = q.name;
+
+  const rows = holders.map(r => {
+    const e = getEmployee(r.empId);
+    const hasImg = r.images && r.images.length > 0;
+    return `<tr onclick="showEmpDetail(${r.empId})">
+      <td>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:30px;height:30px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0">${e?.initials}</div>
+          <div><div style="font-weight:600">${e?.name}</div><div style="font-size:11px;color:var(--text3)">${e?.dept}</div></div>
+        </div>
+      </td>
+      <td style="font-family:var(--mono);font-size:12px">${fmtDate(r.acquired)}</td>
+      <td>
+        <div style="font-family:var(--mono);font-size:12px">${fmtDate(r.expiry)}</div>
+        ${expiryFill(r)}
+      </td>
+      <td>${statusBadge(r)}</td>
+      <td onclick="event.stopPropagation()">
+        ${hasImg
+          ? `<button class="btn btn-sm" onclick="openImgViewer(${r.id})">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              資格証 (${r.images.length})
+            </button>`
+          : `<span style="font-size:12px;color:var(--text3)">未登録</span>`}
+      </td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="5" style="text-align:center;color:var(--text3);padding:28px">この資格の所持者はいません</td></tr>`;
+
+  const expiredCount  = holders.filter(r => getStatus(r) === 'expired').length;
+  const expiringCount = holders.filter(r => getStatus(r) === 'expiring').length;
+
+  document.getElementById('content').innerHTML = `
+    <!-- パンくず -->
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:18px;font-size:13px;color:var(--text2);">
+      <span onclick="showPage('qualifications')" style="cursor:pointer;color:var(--accent);font-weight:500;">資格一覧</span>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg>
+      <span style="color:var(--text)">${q.name}</span>
+    </div>
+
+    <!-- 資格ヘッダー -->
+    <div class="card" style="margin-bottom:16px;">
+      <div style="padding:20px 24px;display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div style="padding:3px 10px;border-radius:16px;background:${cfg.bg};color:${cfg.accent};font-size:12px;font-weight:700;border:1px solid ${cfg.border};">${cfg.icon} ${q.category}</div>
+            ${q.renewal ? `<span class="badge badge-blue">更新あり（${q.years}年）</span>` : '<span class="badge badge-gray">更新不要</span>'}
+          </div>
+          <div style="font-size:20px;font-weight:700;margin-bottom:4px;">${q.name}</div>
+          <div style="font-size:13px;color:var(--text2);">所持者 ${holders.length}名</div>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <div style="text-align:center;padding:12px 20px;border-radius:var(--radius);background:var(--bg);">
+            <div style="font-size:22px;font-weight:700;color:var(--accent-mid)">${holders.filter(r=>getStatus(r)==='valid').length}</div>
+            <div style="font-size:11px;color:var(--text2);">有効</div>
+          </div>
+          <div style="text-align:center;padding:12px 20px;border-radius:var(--radius);background:${expiredCount>0?'var(--danger-light)':'var(--bg)'};">
+            <div style="font-size:22px;font-weight:700;color:${expiredCount>0?'var(--danger)':'var(--text3)'}">${expiredCount}</div>
+            <div style="font-size:11px;color:var(--text2);">期限切れ</div>
+          </div>
+          <div style="text-align:center;padding:12px 20px;border-radius:var(--radius);background:${expiringCount>0?'var(--warn-light)':'var(--bg)'};">
+            <div style="font-size:22px;font-weight:700;color:${expiringCount>0?'var(--warn)':'var(--text3)'}">${expiringCount}</div>
+            <div style="font-size:11px;color:var(--text2);">要更新</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 所持者テーブル -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">所持者一覧</div>
+        <button class="btn btn-sm" onclick="exportCSVForQual(${qualId})">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          CSV出力
+        </button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>従業員</th><th>取得日</th><th>有効期限</th><th>状態</th><th>資格証</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+// 資格別CSV出力
+function exportCSVForQual(qualId) {
+  const q = getQual(qualId);
+  const holders = records.filter(r => r.qualId === qualId);
+  const header = ['資格名', '区分', '従業員名', '所属', '取得日', '有効期限', '状態'];
+  const rows = holders.map(r => {
+    const e = getEmployee(r.empId);
+    const s = getStatus(r);
+    const statusLabel = s==='expired'?'期限切れ':s==='expiring'?'要更新':s==='noexpiry'?'期限なし':'有効';
+    return [q.name, q.category, e?.name, e?.dept, r.acquired, r.expiry||'', statusLabel];
+  });
+  const csv = [header, ...rows].map(row => row.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${q.name}_所持者一覧_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('CSVをダウンロードしました', 'success');
+}
+
+// ============================================================
+// EXPIRED / EXPIRING PAGES
+// ============================================================
+function renderAlertTable(list) {
+  if (list.length === 0) return '<div class="empty-state"><p>該当する資格はありません</p></div>';
+  const rows = list.map(r => {
+    const e = getEmployee(r.empId), q = getQual(r.qualId);
+    const hasImg = r.images && r.images.length > 0;
+    return `<tr onclick="showEmpDetail(${r.empId})">
+      <td>${statusBadge(r)}</td>
+      <td><strong>${e?.name}</strong><div style="font-size:11px;color:var(--text3)">${e?.dept}</div></td>
+      <td>${catBadge(q?.category)}</td>
+      <td>${q?.name}</td>
+      <td style="font-family:var(--mono);font-size:12px;color:${getStatus(r)==='expired'?'var(--danger)':'var(--warn)'}">${fmtDate(r.expiry)}</td>
+      <td onclick="event.stopPropagation()">
+        ${hasImg
+          ? `<button class="btn btn-sm" onclick="openImgViewer(${r.id})"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg> 資格証確認</button>`
+          : `<span style="font-size:12px;color:var(--text3)">画像未登録</span>`}
+      </td>
+    </tr>`;
+  }).join('');
+  return `<div class="card"><div class="table-wrap"><table>
+    <thead><tr><th>状態</th><th>従業員</th><th>区分</th><th>資格名</th><th>期限日</th><th>資格証</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table></div></div>`;
+}
+
+function renderExpiredPage() {
+  const list = expiredRecords();
+  return `<div class="alert-bar danger" style="margin-bottom:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><strong>${list.length}件の資格が期限切れです。早急に更新手続きを行ってください。</strong></div>` + renderAlertTable(list);
+}
+
+function renderExpiringPage() {
+  const list = expiringRecords();
+  return `<div class="alert-bar warn" style="margin-bottom:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><strong>${list.length}件の資格が3か月以内に期限を迎えます。更新の準備を始めてください。</strong></div>` + renderAlertTable(list);
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+let searchQuery = '';
+function handleSearch(val) {
+  searchQuery = val;
+  if (val.length >= 1) {
+    currentPage = 'search';
+    document.getElementById('page-title').textContent = `"${val}" の検索結果`;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    renderPage('search');
+  } else {
+    showPage('dashboard');
+  }
+}
+
+function renderSearch() {
+  const q = searchQuery;
+  const matchedEmps = employees.filter(e => e.name.includes(q) || e.dept.includes(q));
+  const matchedRecs = records.filter(r => {
+    const e = getEmployee(r.empId), qual = getQual(r.qualId);
+    return e?.name.includes(q) || e?.dept.includes(q) || qual?.name.includes(q);
+  });
+
+  let html = `<div style="margin-bottom:16px;color:var(--text2);font-size:13px">「${q}」の検索結果 — 従業員 ${matchedEmps.length}名 / 資格 ${matchedRecs.length}件</div>`;
+
+  if (matchedEmps.length) {
+    const rows = matchedEmps.map(e => `<tr onclick="showEmpDetail(${e.id})">
+      <td><div style="font-weight:600">${e.name}</div><div style="font-size:11px;color:var(--text3)">${e.dept}</div></td>
+      <td>${records.filter(r=>r.empId===e.id).length}件</td>
+    </tr>`).join('');
+    html += `<div style="margin-bottom:16px"><div class="section-title">従業員</div><div class="card"><div class="table-wrap"><table><thead><tr><th>従業員</th><th>保有資格数</th></tr></thead><tbody>${rows}</tbody></table></div></div></div>`;
+  }
+  if (matchedRecs.length) {
+    html += `<div class="section-title">資格</div>` + renderAlertTable(matchedRecs);
+  }
+  if (!matchedEmps.length && !matchedRecs.length) {
+    html += `<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>該当するデータが見つかりません</p></div>`;
+  }
+  return html;
+}
+
+// ============================================================
+// ADD MODAL
+// ============================================================
+function showAddModal(presetEmpId = null) {
+  const empRow   = document.getElementById('f-employee-row');
+  const empFixed = document.getElementById('f-employee-fixed');
+  const empName  = document.getElementById('f-employee-name');
+  const qualSolo = document.getElementById('f-qual-solo');
+
+  if (presetEmpId) {
+    // 従業員詳細から呼ばれた場合：従業員選択欄を非表示にして固定表示
+    const e = getEmployee(presetEmpId);
+    empRow.style.display   = 'none';
+    empFixed.style.display = 'block';
+    qualSolo.style.display = 'block';
+    empName.textContent    = e ? `${e.name}　（${e.dept}）` : '';
+
+    // f-employeeに値をセット（saveRecord側で使う）
+    const empSel = document.getElementById('f-employee');
+    empSel.innerHTML = `<option value="${presetEmpId}" selected></option>`;
+
+    // 資格名はsolo用セレクトに表示
+    const qSoloSel = document.getElementById('f-qualification-solo');
+    qSoloSel.innerHTML = '<option value="">選択してください</option>' +
+      qualMasters.map(q => `<option value="${q.id}">[${q.category}] ${q.name}</option>`).join('');
+    // f-qualificationもsolo連動させる
+    qSoloSel.onchange = () => {
+      document.getElementById('f-qualification').innerHTML =
+        `<option value="${qSoloSel.value}" selected></option>`;
+    };
+
+    document.getElementById('modal-title').textContent = e ? `${e.name} に資格を追加` : '資格を追加';
+  } else {
+    // 通常の「+資格を追加」ボタンから呼ばれた場合
+    empRow.style.display   = '';
+    empFixed.style.display = 'none';
+    qualSolo.style.display = 'none';
+
+    const empSel = document.getElementById('f-employee');
+    const qualSel = document.getElementById('f-qualification');
+    empSel.innerHTML  = '<option value="">選択してください</option>' +
+      employees.map(e => `<option value="${e.id}">${e.name} (${e.dept})</option>`).join('');
+    qualSel.innerHTML = '<option value="">選択してください</option>' +
+      qualMasters.map(q => `<option value="${q.id}">[${q.category}] ${q.name}</option>`).join('');
+    document.getElementById('modal-title').textContent = '資格を追加';
+  }
+
+  document.getElementById('upload-thumbs').innerHTML = '';
+  document.getElementById('f-acquired').value = '';
+  document.getElementById('f-expiry').value   = '';
+  document.getElementById('f-notes').value    = '';
+  document.getElementById('add-modal').classList.add('open');
+}
+
+let uploadedFiles = [];
+
+function handleFileUpload(input) {
+  const files = Array.from(input.files);
+  uploadedFiles = files.slice(0, 5);
+  const thumbs = document.getElementById('upload-thumbs');
+  thumbs.innerHTML = '';
+  uploadedFiles.forEach((f, i) => {
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const div = document.createElement('div');
+      div.className = 'thumb' + (i===0?' active':'');
+      if (f.type.startsWith('image/')) {
+        div.style.backgroundImage = `url(${ev.target.result})`;
+        div.style.backgroundSize = 'cover';
+        div.style.backgroundPosition = 'center';
+      } else {
+        div.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`;
+      }
+      thumbs.appendChild(div);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+async function saveRecord() {
+  const empId = parseInt(document.getElementById('f-employee').value);
+  // solo表示中はf-qualification-soloの値を優先
+  const qualSolo = document.getElementById('f-qualification-solo');
+  const qualVal  = (qualSolo && qualSolo.style.display !== 'none' && qualSolo.value)
+                    ? qualSolo.value
+                    : document.getElementById('f-qualification').value;
+  const qualId   = parseInt(qualVal);
+  const acquired = document.getElementById('f-acquired').value;
+  const expiry   = document.getElementById('f-expiry').value;
+  if (!empId || !qualId) { showToast('従業員と資格を選択してください', 'error'); return; }
+  if (!acquired) { showToast('取得日を入力してください', 'error'); return; }
+
+  // 画像はセッション内一時保管（後でSupabase Storage連携に拡張可）
+  const imgKeys = uploadedFiles.length > 0
+    ? uploadedFiles.map((f, i) => `upload_tmp_${Date.now()}_${i}.${f.name.split('.').pop()}`)
+    : [];
+  uploadedFiles.forEach((f, i) => {
+    const reader = new FileReader();
+    reader.onload = ev => { dummyImages[imgKeys[i]] = ev.target.result; };
+    reader.readAsDataURL(f);
+  });
+
+  const newRec = { empId, qualId, acquired, expiry: expiry || null, images: imgKeys, notes: document.getElementById('f-notes').value };
+  setLoading(true, '資格を保存中...');
+  const newId = await dbInsertRecord(newRec);
+  setLoading(false);
+  if (!newId) return;
+
+  newRec.id = newId;
+  records.push(newRec);
+  uploadedFiles = [];
+  updateBadges();
+  closeModal('add-modal');
+  showToast('資格を登録しました', 'success');
+  renderPage(currentPage);
+}
+
+// ============================================================
+// EMPLOYEE REGISTRATION
+// ============================================================
+let editingEmpId = null;
+
+function showAddEmpModal(empId = null) {
+  editingEmpId = empId;
+  const isEdit = empId !== null;
+  document.getElementById('emp-modal-title').textContent = isEdit ? '従業員情報を編集' : '従業員を登録';
+  if (isEdit) {
+    const e = getEmployee(empId);
+    document.getElementById('ef-name').value  = e.name;
+    document.getElementById('ef-dept').value  = e.dept;
+    document.getElementById('ef-hire').value  = e.hire;
+    document.getElementById('ef-status').value = e.status;
+    document.getElementById('ef-email').value = e.email || '';
+    document.getElementById('ef-notes').value = e.notes || '';
+  } else {
+    document.getElementById('ef-name').value  = '';
+    document.getElementById('ef-dept').value  = '';
+    document.getElementById('ef-hire').value  = '';
+    document.getElementById('ef-status').value = '在籍';
+    document.getElementById('ef-email').value = '';
+    document.getElementById('ef-notes').value = '';
+  }
+  closeModal('emp-modal');
+  document.getElementById('emp-add-modal').classList.add('open');
+}
+
+async function saveEmployee() {
+  const name   = document.getElementById('ef-name').value.trim();
+  const dept   = document.getElementById('ef-dept').value.trim();
+  const hire   = document.getElementById('ef-hire').value;
+  const status = document.getElementById('ef-status').value;
+  if (!name) { showToast('氏名を入力してください', 'error'); return; }
+  if (!dept) { showToast('所属部署を入力してください', 'error'); return; }
+  if (!hire) { showToast('入社日を入力してください', 'error'); return; }
+
+  const parts    = name.replace(/\s+/g, ' ').trim().split(' ');
+  const initials = parts.length >= 2 ? parts[0][0] + parts[1][0] : parts[0].slice(0, 2);
+  const email    = document.getElementById('ef-email').value.trim();
+  const notes    = document.getElementById('ef-notes').value.trim();
+
+  setLoading(true, '従業員情報を保存中...');
+
+  if (editingEmpId !== null) {
+    const e = getEmployee(editingEmpId);
+    Object.assign(e, { name, dept, hire, status, initials, email, notes });
+    const ok = await dbUpdateEmployee(e);
+    setLoading(false);
+    if (!ok) return;
+    showToast('従業員情報を更新しました', 'success');
+  } else {
+    const newEmp = { name, dept, hire, status, initials, email, notes };
+    const newId  = await dbInsertEmployee(newEmp);
+    setLoading(false);
+    if (!newId) return;
+    newEmp.id = newId;
+    employees.push(newEmp);
+    showToast(name + ' を登録しました', 'success');
+  }
+  closeModal('emp-add-modal');
+  renderPage(currentPage);
+}
+
+// ============================================================
+// ADMIN SETTINGS
+// ============================================================
+let adminData = { name: '', company: '', role: '管理者', email: '' };
+
+function showAdminModal() {
+  document.getElementById('af-name').value    = adminData.name;
+  document.getElementById('af-company').value = adminData.company;
+  document.getElementById('af-role').value    = adminData.role;
+  document.getElementById('af-email').value   = adminData.email;
+  updateAdminPreview();
+  document.getElementById('admin-modal').classList.add('open');
+}
+
+function updateAdminPreview() {
+  const name    = document.getElementById('af-name').value.trim() || '管理者名未設定';
+  const company = document.getElementById('af-company').value.trim();
+  const role    = document.getElementById('af-role').value;
+  const parts   = name.replace(/\s+/g,' ').split(' ');
+  const ini     = parts.length >= 2 ? parts[0][0] + parts[1][0] : name.slice(0,2);
+  document.getElementById('admin-preview-avatar').textContent = ini;
+  document.getElementById('admin-preview-name').textContent   = name;
+  document.getElementById('admin-preview-role').textContent   = company ? `${role}　${company}` : role;
+}
+
+function saveAdmin() {
+  const name = document.getElementById('af-name').value.trim();
+  if (!name) { showToast('氏名を入力してください', 'error'); return; }
+  adminData.name    = name;
+  adminData.company = document.getElementById('af-company').value.trim();
+  adminData.role    = document.getElementById('af-role').value;
+  adminData.email   = document.getElementById('af-email').value.trim();
+
+  // サイドバーフッターに反映
+  const parts = name.replace(/\s+/g,' ').split(' ');
+  const ini   = parts.length >= 2 ? parts[0][0] + parts[1][0] : name.slice(0,2);
+  document.getElementById('admin-avatar').textContent = ini;
+  document.getElementById('admin-name').textContent   = name;
+  document.getElementById('admin-role').textContent   = adminData.company
+    ? `${adminData.role}　${adminData.company}` : adminData.role;
+
+  closeModal('admin-modal');
+  showToast('管理者情報を保存しました', 'success');
+}
+
+// ============================================================
+// IMAGE VIEWER
+// ============================================================
+function openImgViewer(recId) {
+  const r = records.find(x => x.id === recId);
+  if (!r) return;
+  currentImgRecord = r;
+  currentImgIndex = 0;
+  const e = getEmployee(r.empId), q = getQual(r.qualId);
+  document.getElementById('img-modal-title').textContent = q?.name;
+  document.getElementById('img-modal-sub').textContent = e?.name + '　|　' + fmtDate(r.expiry) + (r.expiry ? '　まで' : '');
+  renderViewer();
+  document.getElementById('img-modal').classList.add('open');
+}
+
+function renderViewer() {
+  const r = currentImgRecord;
+  const viewer = document.getElementById('img-viewer');
+  const thumbsEl = document.getElementById('viewer-thumbs');
+  const imgs = r.images;
+
+  if (!imgs || imgs.length === 0) {
+    viewer.innerHTML = `<div class="img-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><div>画像未登録</div></div>`;
+    thumbsEl.innerHTML = '';
+    return;
+  }
+
+  const src = dummyImages[imgs[currentImgIndex]];
+  if (src) {
+    viewer.innerHTML = `<img src="${src}" alt="資格証">`;
+  } else {
+    viewer.innerHTML = `<div class="img-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><div>読み込み中...</div></div>`;
+  }
+
+  thumbsEl.innerHTML = imgs.map((k, i) => {
+    const tsrc = dummyImages[k];
+    const isPDF = k.endsWith('.pdf');
+    return `<div class="thumb ${i===currentImgIndex?'active':''}" onclick="setViewerImg(${i})" style="${tsrc&&!isPDF?`background-image:url(${tsrc});background-size:cover;background-position:center`:''}">
+      ${isPDF||!tsrc?`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`:''}
+    </div>`;
+  }).join('');
+}
+
+function setViewerImg(idx) {
+  currentImgIndex = idx;
+  renderViewer();
+}
+
+function downloadImg() {
+  const r = currentImgRecord;
+  if (!r || !r.images || r.images.length === 0) { showToast('画像がありません', 'error'); return; }
+  const key = r.images[currentImgIndex];
+  const src = dummyImages[key];
+  if (!src) { showToast('画像データがありません', 'error'); return; }
+  const a = document.createElement('a');
+  a.href = src;
+  a.download = key;
+  a.click();
+  showToast('ダウンロード開始しました');
+}
+
+function openNewTab() {
+  const r = currentImgRecord;
+  if (!r || !r.images || r.images.length === 0) return;
+  const src = dummyImages[r.images[currentImgIndex]];
+  if (src) {
+    const w = window.open();
+    w.document.write(`<img src="${src}" style="max-width:100%;height:auto">`);
+  }
+}
+
+// ============================================================
+// CSV EXPORT
+// ============================================================
+function exportCSV() {
+  const header = ['従業員名', '所属', '資格区分', '資格名', '取得日', '有効期限', '状態'];
+  const rows = records.map(r => {
+    const e = getEmployee(r.empId), q = getQual(r.qualId);
+    const s = getStatus(r);
+    const statusLabel = s==='expired'?'期限切れ':s==='expiring'?'要更新':s==='noexpiry'?'期限なし':'有効';
+    return [e?.name, e?.dept, q?.category, q?.name, r.acquired, r.expiry||'', statusLabel];
+  });
+  const csv = [header, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `資格管理_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('CSVをダウンロードしました', 'success');
+}
+
+// ============================================================
+// UTILITIES
+// ============================================================
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function showToast(msg, type='') {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' ' + type : '');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+
+function updateBadges() {
+  const be = document.getElementById('badge-expired');
+  const bw = document.getElementById('badge-expiring');
+  if (be) be.textContent = expiredRecords().length;
+  if (bw) bw.textContent = expiringRecords().length;
+}
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+});
+
+// ============================================================
+// INIT — Supabaseからデータを読み込んで起動
+// ============================================================
+(async () => {
+  // 資格マスタはSupabaseではなくローカル定義を使用
+  // （変更が少ないためHTMLに埋め込みが効率的）
+  showPage('dashboard');  // まずUIを表示
+  await dbLoadAll();      // DBからデータ取得して再描画
+})();
+</script>
+</body>
+</html>
